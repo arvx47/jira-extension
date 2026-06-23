@@ -1,0 +1,62 @@
+#jira-quick-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0052cc;
+  background: #e8f0fe;
+  border: 1px solid #b3c7f7;
+  border-radius: 4px;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background 0.15s, color 0.15s;
+}
+
+#jira-quick-copy-btn:hover {
+  background: #d0e0fc;
+}
+
+#jira-quick-copy-btn.jqc-success {
+  background: #e3fcef;
+  color: #006644;
+  border-color: #a3d9b1;
+}
+
+#jira-quick-copy-btn.jqc-error {
+  background: #ffebe6;
+  color: #bf2600;
+  border-color: #ffbdad;
+}
+
+.jqc-board-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #0052cc;
+  background: #e8f0fe;
+  border: 1px solid #b3c7f7;
+  border-radius: 3px;
+  cursor: pointer;
+  margin: 2px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.jqc-board-btn:hover {
+  background: #d0e0fc;
+}
+
+.jqc-board-btn.jqc-success {
+  background: #e3fcef;
+  color: #006644;
+  border-color: #a3d9b1;
+}
+
+.jqc-board-btn.jqc-error {
+  background: #ffebe6;
+  color: #bf2600;
+  border-color: #ffbdad;
+}
