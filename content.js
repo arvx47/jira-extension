@@ -266,21 +266,22 @@
     console.log("JQC: GitHub PR data:", data);
     if (!data) { console.log("JQC: No PR data found"); return; }
 
-    // Find the PR title element
-    const titleEl = document.querySelector(".prc-PageHeader-Title-p0Mgh") ||
-      document.querySelector(".js-issue-title") ||
-      document.querySelector('[data-testid="issue-title"]') ||
-      document.querySelector("h1 bdi") ||
-      document.querySelector("h1");
+    // Find the PR header container
+    const headerContainer = document.querySelector(".prc-PageHeader-details-container") ||
+      document.querySelector(".gh-header-meta") ||
+      document.querySelector('[data-component="PH"]') ||
+      document.querySelector(".prc-PageHeader-Title-p0Mgh")?.parentElement?.parentElement ||
+      document.querySelector("h1")?.closest('[class*="Header"]');
 
-    console.log("JQC: Title element:", titleEl);
-    if (!titleEl) { console.log("JQC: No title found"); return; }
+    console.log("JQC: Header container:", headerContainer);
+    if (!headerContainer) { console.log("JQC: No header container found"); return; }
 
     const btn = makeButton(GH_BUTTON_ID, "Copy formatted PR", "Copy PR title as a formatted link");
     btn.className = "jqc-board-btn";
-    btn.style.display = "inline-flex";
-    btn.style.marginLeft = "8px";
-    btn.style.verticalAlign = "middle";
+    btn.style.position = "absolute";
+    btn.style.right = "0";
+    btn.style.top = "50%";
+    btn.style.transform = "translateY(-50%)";
 
     btn.addEventListener("click", () => {
       const { fullTitle, jiraKey, prUrl, sizeIcon } = getGitHubPRData();
@@ -306,9 +307,14 @@
       }
     });
 
-    // Insert button inside or after title to keep it inline
-    titleEl.insertAdjacentElement("afterend", btn);
-    console.log("JQC: GitHub button injected for PR");
+    // Set container to relative positioning if needed
+    if (getComputedStyle(headerContainer).position === "static") {
+      headerContainer.style.position = "relative";
+    }
+
+    // Insert button at the end of header container
+    headerContainer.appendChild(btn);
+    console.log("JQC: GitHub button injected for PR at right");
   }
 
   // ── GitHub PR List ──────────────────────────────────────────────────────────
