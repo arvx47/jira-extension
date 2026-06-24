@@ -462,19 +462,17 @@
         const key = getIssueKeyFromCard(card);
         if (!key) { flashButton(btn, false); return; }
 
-        // Get title from card - try multiple selectors
+        // Get title from card - look for the longest text that isn't just the key
         let title = key;
-        const titleCandidates = [
-          card.querySelector('h2'),
-          card.querySelector('h3'),
-          card.querySelector('h4'),
-          card.querySelector('[data-testid*="title"]'),
-          card.querySelector('a[href*="/browse/"]')
-        ];
+        const textContent = card.textContent;
 
-        for (const el of titleCandidates) {
-          if (el && el.textContent.trim()) {
-            title = el.textContent.trim();
+        // Extract title by removing the key and other noise
+        const lines = textContent.split('\n').map(l => l.trim()).filter(l => l);
+        for (const line of lines) {
+          // Skip lines that are just the key, numbers, or very short
+          if (line.length > key.length + 5 && !line.match(/^\d+$/) && line !== key) {
+            title = line;
+            console.log("JQC: Found title:", title);
             break;
           }
         }
