@@ -255,23 +255,33 @@
   function injectGitHubButton() {
     if (document.getElementById(GH_BUTTON_ID)) return;
     const data = getGitHubPRData();
-    if (!data) return;
+    console.log("JQC: GitHub PR data:", data);
+    if (!data) { console.log("JQC: No PR data found"); return; }
 
-    const anchor =
-      document.querySelector(".gh-header-meta") ||
-      document.querySelector(".js-pull-header-details") ||
-      document.querySelector(".gh-header-actions") ||
-      document.querySelector(".js-issue-header-actions");
+    // Find the PR title element
+    const titleEl = document.querySelector(".prc-PageHeader-Title-p0Mgh") ||
+      document.querySelector(".js-issue-title") ||
+      document.querySelector('[data-testid="issue-title"]') ||
+      document.querySelector("h1 bdi") ||
+      document.querySelector("h1");
 
-    if (!anchor) return;
+    console.log("JQC: Title element:", titleEl);
+    if (!titleEl) { console.log("JQC: No title found"); return; }
 
-    const btn = makeButton(GH_BUTTON_ID, "Copy link", "Copy PR title as a formatted link");
+    const btn = makeButton(GH_BUTTON_ID, "Copy", "Copy PR title as a formatted link");
+    btn.className = "jqc-board-btn";
+    btn.style.display = "inline-flex";
+    btn.style.marginLeft = "8px";
+    btn.style.verticalAlign = "middle";
+
     btn.addEventListener("click", () => {
       const { fullTitle, jiraKey, prUrl, sizeIcon } = getGitHubPRData();
+      console.log("JQC: Copy clicked - fullTitle:", fullTitle, "jiraKey:", jiraKey);
       if (!fullTitle) { flashButton(btn, false); return; }
 
       if (jiraKey) {
         getJiraBase((jiraBase) => {
+          console.log("JQC: jiraBase:", jiraBase);
           const jiraUrl = jiraBase ? `https://${jiraBase}/browse/${jiraKey}` : null;
           const plain = `:salesforce: ${sizeIcon} [${jiraKey}] ${stripBracketedKey(fullTitle)} ${prUrl}`;
           const linkedKey = jiraUrl ? `<a href="${jiraUrl}">${jiraKey}</a>` : jiraKey;
@@ -280,6 +290,7 @@
           flashButton(btn, true);
         });
       } else {
+        console.log("JQC: No jiraKey found, copying title only");
         const plain = `${fullTitle} ${prUrl}`;
         const html  = `${fullTitle} <a href="${prUrl}">${prUrl}</a>`;
         copyRichText(html, plain);
@@ -287,7 +298,74 @@
       }
     });
 
-    anchor.prepend(btn);
+    // Insert button inside or after title to keep it inline
+    titleEl.insertAdjacentElement("afterend", btn);
+    console.log("JQC: GitHub button injected for PR");
+  }
+
+  // ── GitHub PR List ──────────────────────────────────────────────────────────
+
+  function isGitHubPRListView() {
+    // Check if on a page that lists multiple PRs
+    return location.pathname.includes("/pulls") && !location.pathname.includes("/pull/");
+  }
+
+  function getGitHubPRsFromList() {
+    // Find all PR items in the list
+    const prItems = document.querySelectorAll(
+      '[data-testid="issue-row-container"],' +
+      'div[role="listitem"],' +
+      '[class*="IssueRow"]'
+    );
+    return prItems;
+  }
+
+  function getGitHubPRKeyFromItem(item) {
+    // Find PR number and title
+    const link = item.querySelector('a[href*="/pull/"]');
+    if (!link) return null;
+
+    const match = link.href.match(/\/pull\/(\d+)/);
+    return match ? match[1] : null;
+  }
+
+  function injectGitHubPRListButtons() {
+    if (!isGitHubPRListView()) return;
+
+    const prItems = getGitHubPRsFromList();
+    console.log("JQC: Found " + prItems.length + " PR items in list");
+
+    prItems.forEach((item, idx) => {
+      const prNum = getGitHubPRKeyFromItem(item);
+      if (!prNum) return;
+
+      const btnId = `jqc-gh-list-btn-${prNum}`;
+      if (document.getElementById(btnId)) return;
+
+      const link = item.querySelector('a[href*="/pull/"]');
+      const title = link ? link.textContent.trim() : "";
+
+      const btn = makeButton(btnId, "Copy", "Copy PR title");
+      btn.className = "jqc-board-btn";
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        const prLink = item.querySelector('a[href*="/pull/"]');
+        if (!prLink) { flashButton(btn, false); return; }
+
+        const prUrl = prLink.href.split("?")[0]; // Remove query params
+        const prTitle = prLink.textContent.trim();
+        const plain = `${prTitle} ${prUrl}`;
+        const html = `${prTitle} <a href="${prUrl}">${prUrl}</a>`;
+        copyRichText(html, plain);
+        flashButton(btn, true);
+      });
+
+      item.appendChild(btn);
+      console.log("JQC: Button injected for PR #" + prNum);
+    });
   }
 
   // ── Jira Board ──────────────────────────────────────────────────────────────
@@ -435,12 +513,23 @@
   }
 
   function inject() {
+    console.log("JQC: inject() called - hostname:", location.hostname);
     if (isJira()) {
+      console.log("JQC: Detected Jira");
       injectJiraButton();
       injectBoardButtons();
     }
-    else if (isBitbucket()) injectBitbucketButton();
-    else if (isGitHub()) injectGitHubButton();
+    else if (isBitbucket()) {
+      console.log("JQC: Detected Bitbucket");
+      injectBitbucketButton();
+    }
+    else if (isGitHub()) {
+      console.log("JQC: Detected GitHub");
+      injectGitHubButton();
+      injectGitHubPRListButtons();
+    } else {
+      console.log("JQC: Unknown platform");
+    }
   }
 
   const observer = new MutationObserver(() => inject());
