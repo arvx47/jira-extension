@@ -6,25 +6,33 @@
   // ── Shared helpers ──────────────────────────────────────────────────────────
 
   function copyRichText(html, plain) {
-    if (typeof ClipboardItem !== "undefined") {
-      const htmlBlob = new Blob([html], { type: "text/html" });
-      const textBlob = new Blob([plain], { type: "text/plain" });
-      navigator.clipboard
-        .write([new ClipboardItem({ "text/html": htmlBlob, "text/plain": textBlob })])
-        .catch(() => fallbackCopy(plain));
-    } else {
-      fallbackCopy(plain);
+    try {
+      if (typeof ClipboardItem !== "undefined") {
+        const htmlBlob = new Blob([html], { type: "text/html" });
+        const textBlob = new Blob([plain], { type: "text/plain" });
+        navigator.clipboard
+          .write([new ClipboardItem({ "text/html": htmlBlob, "text/plain": textBlob })])
+          .catch(() => fallbackCopy(plain));
+      } else {
+        fallbackCopy(plain);
+      }
+    } catch (e) {
+      console.log("JQC: Copy error (context invalidated?)", e);
     }
   }
 
   function fallbackCopy(text) {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.cssText = "position:fixed;opacity:0";
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    ta.remove();
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.cssText = "position:fixed;opacity:0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    } catch (e) {
+      console.log("JQC: Fallback copy error", e);
+    }
   }
 
   function flashButton(btn, success) {
