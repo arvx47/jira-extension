@@ -101,7 +101,7 @@
 
     if (!anchor) return;
 
-    const btn = makeButton(JIRA_BUTTON_ID, "Copy link", "Copy issue key + title as a formatted link");
+    const btn = makeButton(JIRA_BUTTON_ID, "Copy formatted ticket", "Copy issue key + title as a formatted link");
     btn.addEventListener("click", () => {
       const { issueKey, title, issueUrl } = getJiraIssueData();
       if (!issueKey || !title) { flashButton(btn, false); return; }
@@ -176,7 +176,7 @@
 
     if (!anchor) return;
 
-    const btn = makeButton(BB_BUTTON_ID, "Copy PR snippet", "Copy PR title as a formatted link");
+    const btn = makeButton(BB_BUTTON_ID, "Copy formatted PR", "Copy PR title as a formatted link");
     btn.addEventListener("click", () => {
       const { fullTitle, jiraKey, prUrl, sizeIcon } = getBitbucketPRData();
       if (!fullTitle) { flashButton(btn, false); return; }
@@ -276,7 +276,7 @@
     console.log("JQC: Title element:", titleEl);
     if (!titleEl) { console.log("JQC: No title found"); return; }
 
-    const btn = makeButton(GH_BUTTON_ID, "Copy PR snippet", "Copy PR title as a formatted link");
+    const btn = makeButton(GH_BUTTON_ID, "Copy formatted PR", "Copy PR title as a formatted link");
     btn.className = "jqc-board-btn";
     btn.style.display = "inline-flex";
     btn.style.marginLeft = "8px";
@@ -353,7 +353,7 @@
       const link = item.querySelector('a[href*="/pull/"]');
       const title = link ? link.textContent.trim() : "";
 
-      const btn = makeButton(btnId, "Copy PR snippet", "Copy PR title");
+      const btn = makeButton(btnId, "Copy formatted PR", "Copy PR title");
       btn.className = "jqc-board-btn";
 
       btn.addEventListener("click", (e) => {
@@ -457,7 +457,7 @@
       const btnId = `jqc-board-btn-${issueKey}`;
       if (document.getElementById(btnId)) return;
 
-      const btn = makeButton(btnId, "Copy", "Copy issue key + title");
+      const btn = makeButton(btnId, "Copy formatted ticket", "Copy issue key + title");
       btn.className = "jqc-board-btn";
 
       btn.addEventListener("click", (e) => {
