@@ -266,22 +266,16 @@
     console.log("JQC: GitHub PR data:", data);
     if (!data) { console.log("JQC: No PR data found"); return; }
 
-    // Find the PR header container
-    const headerContainer = document.querySelector(".prc-PageHeader-details-container") ||
-      document.querySelector(".gh-header-meta") ||
-      document.querySelector('[data-component="PH"]') ||
-      document.querySelector(".prc-PageHeader-Title-p0Mgh")?.parentElement?.parentElement ||
-      document.querySelector("h1")?.closest('[class*="Header"]');
+    // Find the h1 title element
+    const h1El = document.querySelector(".prc-PageHeader-Title-p0Mgh") ||
+      document.querySelector("h1");
 
-    console.log("JQC: Header container:", headerContainer);
-    if (!headerContainer) { console.log("JQC: No header container found"); return; }
+    console.log("JQC: h1 element:", h1El);
+    if (!h1El) { console.log("JQC: No h1 found"); return; }
 
     const btn = makeButton(GH_BUTTON_ID, "Copy formatted PR", "Copy PR title as a formatted link");
     btn.className = "jqc-board-btn";
-    btn.style.position = "absolute";
-    btn.style.right = "0";
-    btn.style.top = "50%";
-    btn.style.transform = "translateY(-50%)";
+    btn.style.marginLeft = "8px";
 
     btn.addEventListener("click", () => {
       const { fullTitle, jiraKey, prUrl, sizeIcon } = getGitHubPRData();
@@ -307,14 +301,9 @@
       }
     });
 
-    // Set container to relative positioning if needed
-    if (getComputedStyle(headerContainer).position === "static") {
-      headerContainer.style.position = "relative";
-    }
-
-    // Insert button at the end of header container
-    headerContainer.appendChild(btn);
-    console.log("JQC: GitHub button injected for PR at right");
+    // Insert button inside h1 at the end
+    h1El.appendChild(btn);
+    console.log("JQC: GitHub button injected inside h1");
   }
 
   // ── GitHub PR List ──────────────────────────────────────────────────────────
