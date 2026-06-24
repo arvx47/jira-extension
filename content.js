@@ -462,18 +462,32 @@
         const key = getIssueKeyFromCard(card);
         if (!key) { flashButton(btn, false); return; }
 
-        // Get title from card - look for the longest text that isn't just the key
+        // Get title from card - look for the text content element
         let title = key;
-        const textContent = card.textContent;
 
-        // Extract title by removing the key and other noise
-        const lines = textContent.split('\n').map(l => l.trim()).filter(l => l);
-        for (const line of lines) {
-          // Skip lines that are just the key, numbers, or very short
-          if (line.length > key.length + 5 && !line.match(/^\d+$/) && line !== key) {
-            title = line;
-            console.log("JQC: Found title:", title);
-            break;
+        // Try to find the title in the specific selector
+        const titleEl = card.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]') ||
+                       card.querySelector('[data-testid*="single-line-text"]') ||
+                       card.querySelector('[data-component-selector*="content-section"] span');
+
+        if (titleEl) {
+          const titleText = titleEl.textContent.trim();
+          if (titleText && titleText !== key && titleText.length > key.length) {
+            title = titleText;
+            console.log("JQC: Found title from selector:", title);
+          }
+        }
+
+        // Fallback: extract from text content
+        if (title === key) {
+          const textContent = card.textContent;
+          const lines = textContent.split('\n').map(l => l.trim()).filter(l => l);
+          for (const line of lines) {
+            if (line.length > key.length + 5 && !line.match(/^\d+$/) && line !== key) {
+              title = line;
+              console.log("JQC: Found title from text:", title);
+              break;
+            }
           }
         }
 
