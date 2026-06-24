@@ -293,7 +293,11 @@
   // ── Jira Board ──────────────────────────────────────────────────────────────
 
   function isBoardView() {
-    return location.pathname.includes("/boards/");
+    // Only true if on board page, not on individual issue page or issue popup
+    const hasBoard = location.pathname.includes("/boards/");
+    const hasIndividualIssue = location.pathname.includes("/browse/");
+    const hasSelectedIssue = location.search.includes("selectedIssue=");
+    return hasBoard && !hasIndividualIssue && !hasSelectedIssue;
   }
 
   function getIssuesFromBoard() {
@@ -401,14 +405,12 @@
         flashButton(btn, true);
       });
 
-      // Try to find priority icon and insert button next to it
-      const priorityIcon = card.querySelector('[class*="priority"]') ||
-                          card.querySelector('svg[aria-label*="priority" i]') ||
-                          card.querySelector('[aria-label*="priority" i]');
+      // Find the priority icon container and insert button next to it
+      const priorityContainer = card.querySelector('[data-testid="platform-card.common.ui.priority.icon"]');
 
-      if (priorityIcon) {
-        // Insert after the priority icon
-        priorityIcon.parentElement.insertBefore(btn, priorityIcon.nextSibling);
+      if (priorityContainer) {
+        // Insert button right after priority icon
+        priorityContainer.parentElement.insertBefore(btn, priorityContainer.nextSibling);
         console.log("JQC: Button placed next to priority icon for " + issueKey);
       } else {
         // Fallback: insert at the beginning of the card
