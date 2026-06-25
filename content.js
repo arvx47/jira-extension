@@ -442,8 +442,23 @@
       const btnId = `jqc-board-btn-${issueKey}`;
       if (document.getElementById(btnId)) return;
 
+      // Extract title BEFORE adding button to card
+      let title = issueKey;
+      const contentSection = card.querySelector('[data-component-selector="platform-card.ui.card.card-content.content-section"]');
+      if (contentSection) {
+        const titleEl = contentSection.querySelector('[data-testid*="single-line-text"]') ||
+                       contentSection.querySelector('span');
+        if (titleEl) {
+          const titleText = titleEl.textContent.trim();
+          if (titleText && titleText !== issueKey && titleText.length > issueKey.length) {
+            title = titleText;
+          }
+        }
+      }
+
       const btn = makeButton(btnId, "Copy formatted ticket", "Copy issue key + title");
       btn.className = "jqc-board-btn";
+      btn.setAttribute('data-title', title);
 
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -452,25 +467,10 @@
         const key = getIssueKeyFromCard(card);
         if (!key) { flashButton(btn, false); return; }
 
-        // Get title from card - look in the content section, not including the button
-        let title = key;
-
-        // Look for the content section specifically
-        const contentSection = card.querySelector('[data-component-selector="platform-card.ui.card.card-content.content-section"]');
-        if (contentSection) {
-          const titleEl = contentSection.querySelector('[data-testid*="single-line-text"]') ||
-                         contentSection.querySelector('span');
-          if (titleEl) {
-            const titleText = titleEl.textContent.trim();
-            if (titleText && titleText !== key && titleText.length > key.length) {
-              title = titleText;
-            }
-          }
-        }
-
+        const storedTitle = btn.getAttribute('data-title') || key;
         const issueUrl = `${location.origin}/browse/${key}`;
-        const plain = `${key} ${title}`;
-        const html = `<a href="${issueUrl}">${key}</a> ${title}`;
+        const plain = `${key} ${storedTitle}`;
+        const html = `<a href="${issueUrl}">${key}</a> ${storedTitle}`;
         copyRichText(html, plain);
         flashButton(btn, true);
       });
