@@ -386,12 +386,12 @@
         const key = match[1];
         if (!seenKeys.has(key)) {
           seenKeys.add(key);
-          // Find the closest parent container that represents the card
-          let card = link.closest('[role="button"]') ||
-                     link.closest('[data-testid]') ||
+          // Find the card container - look for the largest parent that contains both title and key
+          let card = link.closest('[class*="yse7za_content"]') || // Jira board card container
+                     link.closest('[class*="content"]') ||
+                     link.closest('[role="button"]')?.closest('[class*="content"]') ||
                      link.closest('[class*="card"]') ||
-                     link.closest('[class*="Card"]') ||
-                     link.parentElement;
+                     link.parentElement?.parentElement?.parentElement?.parentElement?.parentElement;
 
           if (card && !cards.includes(card)) {
             cards.push(card);
@@ -445,12 +445,26 @@
       // Extract title BEFORE adding button to card
       let title = issueKey;
 
+      console.log("JQC: Card element for " + issueKey + ":", card.className);
+
       // Look for the single-line-text span which contains the title
       const titleSpan = card.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
+      console.log("JQC: titleSpan found:", titleSpan);
       if (titleSpan) {
         const titleText = titleSpan.textContent.trim();
+        console.log("JQC: titleSpan text:", titleText);
         if (titleText && titleText !== issueKey && titleText.length > issueKey.length) {
           title = titleText;
+        }
+      } else {
+        console.log("JQC: titleSpan NOT found for " + issueKey + ", trying parentElement");
+        // Try searching in parent or document
+        const allSpans = document.querySelectorAll('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
+        if (allSpans.length > 0) {
+          console.log("JQC: Found " + allSpans.length + " spans with that testid in document");
+          allSpans.forEach((span, i) => {
+            console.log("JQC: Span " + i + ":", span.textContent.substring(0, 50));
+          });
         }
       }
 
