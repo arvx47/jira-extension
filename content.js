@@ -387,16 +387,20 @@
         if (!seenKeys.has(key)) {
           seenKeys.add(key);
 
-          // Find the associated title span
-          let parent = link.parentElement;
-          let titleSpan = null;
-          for (let i = 0; i < 30 && parent; i++) {
-            titleSpan = parent.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
-            if (titleSpan) break;
-            parent = parent.parentElement;
+          // Find the card container first (the large visible container)
+          let cardContainer = link;
+          for (let i = 0; i < 50 && cardContainer; i++) {
+            // Look for the card container by checking for the content area
+            if (cardContainer.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]')) {
+              break;
+            }
+            cardContainer = cardContainer.parentElement;
           }
 
+          // Now find the title span within the card
+          let titleSpan = cardContainer?.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
           const title = titleSpan ? titleSpan.textContent.trim() : key;
+          console.log("JQC: Found issue - key:", key, "title:", title, "titleSpan:", titleSpan);
 
           issuesData.push({
             key: key,
@@ -457,6 +461,7 @@
         e.preventDefault();
 
         const storedTitle = btn.getAttribute('data-title') || key;
+        console.log("JQC: Copying - key:", key, "title:", storedTitle);
         const issueUrl = `${location.origin}/browse/${key}`;
         const plain = `${key} ${storedTitle}`;
         const html = `<a href="${issueUrl}">${key}</a> ${storedTitle}`;
