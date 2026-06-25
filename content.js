@@ -229,7 +229,18 @@
       document.querySelector('[data-testid="issue-title"]') ||
       document.querySelector("h1 bdi");
 
-    const fullTitle = titleEl ? titleEl.textContent.trim() : null;
+    if (!titleEl) return null;
+
+    // Extract only the title text, not buttons or other elements
+    let fullTitle = null;
+    if (titleEl.classList.contains("prc-PageHeader-Title-p0Mgh")) {
+      // Get first span which contains the actual title
+      const titleSpan = titleEl.querySelector('.markdown-title') || titleEl.querySelector('span:first-child');
+      fullTitle = titleSpan ? titleSpan.textContent.trim() : titleEl.textContent.trim();
+    } else {
+      fullTitle = titleEl.textContent.trim();
+    }
+
     if (!fullTitle) return null;
 
     const jiraMatch = fullTitle.match(/\[([A-Z]+-\d+)\]/);
