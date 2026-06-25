@@ -375,35 +375,34 @@
   }
 
   function getIssuesFromBoard() {
-    // Get all title spans and find their associated issue keys
-    const titleSpans = document.querySelectorAll('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
+    // Get all issue key links on the board
+    const issueLinks = document.querySelectorAll('a[href*="/browse/"]');
     const seenKeys = new Set();
     const issuesData = [];
 
-    titleSpans.forEach((titleSpan) => {
-      // Find the issue key link in the parent structure
-      let parent = titleSpan;
-      let link = null;
+    issueLinks.forEach((link) => {
+      const match = link.href.match(/\/browse\/([A-Z]+-\d+)/);
+      if (match) {
+        const key = match[1];
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
 
-      // Search up the DOM tree for a link to /browse/
-      for (let i = 0; i < 15 && parent; i++) {
-        link = parent.querySelector('a[href*="/browse/"]');
-        if (link) break;
-        parent = parent.parentElement;
-      }
-
-      if (link) {
-        const match = link.href.match(/\/browse\/([A-Z]+-\d+)/);
-        if (match) {
-          const key = match[1];
-          if (!seenKeys.has(key)) {
-            seenKeys.add(key);
-            issuesData.push({
-              key: key,
-              title: titleSpan.textContent.trim(),
-              titleSpan: titleSpan
-            });
+          // Find the associated title span
+          let parent = link.parentElement;
+          let titleSpan = null;
+          for (let i = 0; i < 30 && parent; i++) {
+            titleSpan = parent.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
+            if (titleSpan) break;
+            parent = parent.parentElement;
           }
+
+          const title = titleSpan ? titleSpan.textContent.trim() : key;
+
+          issuesData.push({
+            key: key,
+            title: title,
+            link: link
+          });
         }
       }
     });
@@ -443,7 +442,7 @@
     const issuesData = getIssuesFromBoard();
 
     issuesData.forEach((issue) => {
-      const { key, title, titleSpan } = issue;
+      const { key, title, link } = issue;
 
       // Check if button already exists
       const btnId = `jqc-board-btn-${key}`;
@@ -465,27 +464,8 @@
         flashButton(btn, true);
       });
 
-      // Find the parent card and insert button in the footer area
-      let cardContainer = titleSpan;
-      for (let i = 0; i < 20 && cardContainer; i++) {
-        if (cardContainer.classList.contains('yse7za_footer') ||
-            cardContainer.querySelector('[data-testid*="footer"]')) {
-          break;
-        }
-        cardContainer = cardContainer.parentElement;
-      }
-
-      // Look for footer in the found container
-      const footer = cardContainer?.querySelector('[data-testid*="footer"]') ||
-                    cardContainer?.querySelector('[class*="footer"]');
-
-      if (footer) {
-        // Insert at the beginning of the footer
-        footer.insertBefore(btn, footer.firstChild);
-      } else {
-        // Fallback: insert after the title span
-        titleSpan.parentElement.insertBefore(btn, titleSpan.nextSibling);
-      }
+      // Insert button right before the issue key link (which we know is visible)
+      link.parentElement.insertBefore(btn, link);
     });
   }
 
