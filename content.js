@@ -375,32 +375,40 @@
   }
 
   function getIssuesFromBoard() {
-    // Get all links that point to /browse/ (issue pages)
-    const issueLinks = document.querySelectorAll('a[href*="/browse/"]');
+    // Get all title spans and find their associated issue keys
+    const titleSpans = document.querySelectorAll('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
     const seenKeys = new Set();
-    const cards = [];
+    const issuesData = [];
 
-    issueLinks.forEach((link) => {
-      const match = link.href.match(/\/browse\/([A-Z]+-\d+)/);
-      if (match) {
-        const key = match[1];
-        if (!seenKeys.has(key)) {
-          seenKeys.add(key);
-          // Find the card container - look for the largest parent that contains both title and key
-          let card = link.closest('[class*="yse7za_content"]') || // Jira board card container
-                     link.closest('[class*="content"]') ||
-                     link.closest('[role="button"]')?.closest('[class*="content"]') ||
-                     link.closest('[class*="card"]') ||
-                     link.parentElement?.parentElement?.parentElement?.parentElement?.parentElement;
+    titleSpans.forEach((titleSpan) => {
+      // Find the issue key link in the parent structure
+      let parent = titleSpan;
+      let link = null;
 
-          if (card && !cards.includes(card)) {
-            cards.push(card);
+      // Search up the DOM tree for a link to /browse/
+      for (let i = 0; i < 15 && parent; i++) {
+        link = parent.querySelector('a[href*="/browse/"]');
+        if (link) break;
+        parent = parent.parentElement;
+      }
+
+      if (link) {
+        const match = link.href.match(/\/browse\/([A-Z]+-\d+)/);
+        if (match) {
+          const key = match[1];
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            issuesData.push({
+              key: key,
+              title: titleSpan.textContent.trim(),
+              titleSpan: titleSpan
+            });
           }
         }
       }
     });
 
-    return cards;
+    return issuesData;
   }
 
   function getIssueKeyFromCard(card) {
@@ -432,41 +440,14 @@
   function injectBoardButtons() {
     if (!isBoardView()) return;
 
-    const cards = getIssuesFromBoard();
+    const issuesData = getIssuesFromBoard();
 
-    cards.forEach((card, idx) => {
-      const issueKey = getIssueKeyFromCard(card);
-      if (!issueKey) return;
+    issuesData.forEach((issue) => {
+      const { key, title, titleSpan } = issue;
 
       // Check if button already exists
-      const btnId = `jqc-board-btn-${issueKey}`;
+      const btnId = `jqc-board-btn-${key}`;
       if (document.getElementById(btnId)) return;
-
-      // Extract title BEFORE adding button to card
-      let title = issueKey;
-
-      console.log("JQC: Card element for " + issueKey + ":", card.className);
-
-      // Look for the single-line-text span which contains the title
-      const titleSpan = card.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
-      console.log("JQC: titleSpan found:", titleSpan);
-      if (titleSpan) {
-        const titleText = titleSpan.textContent.trim();
-        console.log("JQC: titleSpan text:", titleText);
-        if (titleText && titleText !== issueKey && titleText.length > issueKey.length) {
-          title = titleText;
-        }
-      } else {
-        console.log("JQC: titleSpan NOT found for " + issueKey + ", trying parentElement");
-        // Try searching in parent or document
-        const allSpans = document.querySelectorAll('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
-        if (allSpans.length > 0) {
-          console.log("JQC: Found " + allSpans.length + " spans with that testid in document");
-          allSpans.forEach((span, i) => {
-            console.log("JQC: Span " + i + ":", span.textContent.substring(0, 50));
-          });
-        }
-      }
 
       const btn = makeButton(btnId, "Copy", "Copy issue key + title");
       btn.className = "jqc-board-btn";
@@ -476,9 +457,6 @@
         e.stopPropagation();
         e.preventDefault();
 
-        const key = getIssueKeyFromCard(card);
-        if (!key) { flashButton(btn, false); return; }
-
         const storedTitle = btn.getAttribute('data-title') || key;
         const issueUrl = `${location.origin}/browse/${key}`;
         const plain = `${key} ${storedTitle}`;
@@ -487,16 +465,8 @@
         flashButton(btn, true);
       });
 
-      // Find the priority icon container and insert button next to it
-      const priorityContainer = card.querySelector('[data-testid="platform-card.common.ui.priority.icon"]');
-
-      if (priorityContainer) {
-        // Insert button right after priority icon
-        priorityContainer.parentElement.insertBefore(btn, priorityContainer.nextSibling);
-      } else {
-        // Fallback: insert at the beginning of the card
-        card.insertBefore(btn, card.firstChild);
-      }
+      // Insert button after the title span
+      titleSpan.parentElement.insertBefore(btn, titleSpan.nextSibling);
     });
   }
 
