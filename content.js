@@ -444,13 +444,14 @@
 
       // Extract title BEFORE adding button to card
       let title = issueKey;
-      const lines = card.textContent.split('\n').map(l => l.trim()).filter(l => l && l !== issueKey && !l.includes('Copy'));
 
-      // Find longest line that looks like a title
-      if (lines.length > 0) {
-        title = lines.reduce((longest, current) =>
-          current.length > longest.length ? current : longest
-        );
+      // Look for the single-line-text span which contains the title
+      const titleSpan = card.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
+      if (titleSpan) {
+        const titleText = titleSpan.textContent.trim();
+        if (titleText && titleText !== issueKey && titleText.length > issueKey.length) {
+          title = titleText;
+        }
       }
 
       const btn = makeButton(btnId, "Copy", "Copy issue key + title");
