@@ -441,11 +441,9 @@
     if (!isBoardView()) return;
 
     const cards = getIssuesFromBoard();
-    console.log("JQC: Injecting buttons for " + cards.length + " cards");
 
     cards.forEach((card, idx) => {
       const issueKey = getIssueKeyFromCard(card);
-      console.log("JQC: Card " + idx + " key: " + issueKey);
       if (!issueKey) return;
 
       // Check if button already exists
@@ -460,6 +458,7 @@
         e.preventDefault();
 
         const key = getIssueKeyFromCard(card);
+        console.log("JQC: Button clicked for key:", key);
         if (!key) { flashButton(btn, false); return; }
 
         // Get title from card - look for the text content element
@@ -470,18 +469,22 @@
                        card.querySelector('[data-testid*="single-line-text"]') ||
                        card.querySelector('[data-component-selector*="content-section"] span');
 
+        console.log("JQC: titleEl found:", titleEl);
         if (titleEl) {
           const titleText = titleEl.textContent.trim();
+          console.log("JQC: titleEl text:", titleText);
           if (titleText && titleText !== key && titleText.length > key.length) {
             title = titleText;
-            console.log("JQC: Found title from selector:", title);
+            console.log("JQC: Set title from selector:", title);
           }
         }
 
         // Fallback: extract from text content
         if (title === key) {
+          console.log("JQC: Fallback - extracting from card text");
           const textContent = card.textContent;
           const lines = textContent.split('\n').map(l => l.trim()).filter(l => l);
+          console.log("JQC: Card text lines:", lines);
           for (const line of lines) {
             if (line.length > key.length + 5 && !line.match(/^\d+$/) && line !== key) {
               title = line;
@@ -491,6 +494,7 @@
           }
         }
 
+        console.log("JQC: Final title:", title);
         const issueUrl = `${location.origin}/browse/${key}`;
         const plain = `${key} ${title}`;
         const html = `<a href="${issueUrl}">${key}</a> ${title}`;
@@ -528,22 +532,16 @@
   }
 
   function inject() {
-    console.log("JQC: inject() called - hostname:", location.hostname);
     if (isJira()) {
-      console.log("JQC: Detected Jira");
       injectJiraButton();
       injectBoardButtons();
     }
     else if (isBitbucket()) {
-      console.log("JQC: Detected Bitbucket");
       injectBitbucketButton();
     }
     else if (isGitHub()) {
-      console.log("JQC: Detected GitHub");
       injectGitHubButton();
       injectGitHubPRListButtons();
-    } else {
-      console.log("JQC: Unknown platform");
     }
   }
 
