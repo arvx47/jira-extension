@@ -465,8 +465,27 @@
         flashButton(btn, true);
       });
 
-      // Insert button after the title span
-      titleSpan.parentElement.insertBefore(btn, titleSpan.nextSibling);
+      // Find the parent card and insert button in the footer area
+      let cardContainer = titleSpan;
+      for (let i = 0; i < 20 && cardContainer; i++) {
+        if (cardContainer.classList.contains('yse7za_footer') ||
+            cardContainer.querySelector('[data-testid*="footer"]')) {
+          break;
+        }
+        cardContainer = cardContainer.parentElement;
+      }
+
+      // Look for footer in the found container
+      const footer = cardContainer?.querySelector('[data-testid*="footer"]') ||
+                    cardContainer?.querySelector('[class*="footer"]');
+
+      if (footer) {
+        // Insert at the beginning of the footer
+        footer.insertBefore(btn, footer.firstChild);
+      } else {
+        // Fallback: insert after the title span
+        titleSpan.parentElement.insertBefore(btn, titleSpan.nextSibling);
+      }
     });
   }
 

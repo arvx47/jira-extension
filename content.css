@@ -31,7 +31,7 @@
 }
 
 .jqc-board-btn {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   padding: 4px 8px;
   font-size: 11px;
@@ -43,6 +43,8 @@
   cursor: pointer;
   margin: 2px;
   transition: background 0.15s, color 0.15s;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .jqc-board-btn:hover {
