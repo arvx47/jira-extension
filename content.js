@@ -17,7 +17,6 @@
         fallbackCopy(plain);
       }
     } catch (e) {
-      console.log("JQC: Copy error (context invalidated?)", e);
     }
   }
 
@@ -31,7 +30,6 @@
       document.execCommand("copy");
       ta.remove();
     } catch (e) {
-      console.log("JQC: Fallback copy error", e);
     }
   }
 
@@ -263,15 +261,13 @@
   function injectGitHubButton() {
     if (document.getElementById(GH_BUTTON_ID)) return;
     const data = getGitHubPRData();
-    console.log("JQC: GitHub PR data:", data);
-    if (!data) { console.log("JQC: No PR data found"); return; }
+    if (!data) return;
 
     // Find the h1 title element
     const h1El = document.querySelector(".prc-PageHeader-Title-p0Mgh") ||
       document.querySelector("h1");
 
-    console.log("JQC: h1 element:", h1El);
-    if (!h1El) { console.log("JQC: No h1 found"); return; }
+    if (!h1El) return;
 
     const btn = makeButton(GH_BUTTON_ID, "Copy formatted PR", "Copy PR title as a formatted link");
     btn.className = "jqc-board-btn";
@@ -303,7 +299,6 @@
 
     // Insert button inside h1 at the end
     h1El.appendChild(btn);
-    console.log("JQC: GitHub button injected inside h1");
   }
 
   // ── GitHub PR List ──────────────────────────────────────────────────────────
@@ -336,7 +331,6 @@
     if (!isGitHubPRListView()) return;
 
     const prItems = getGitHubPRsFromList();
-    console.log("JQC: Found " + prItems.length + " PR items in list");
 
     prItems.forEach((item, idx) => {
       const prNum = getGitHubPRKeyFromItem(item);
@@ -367,7 +361,6 @@
       });
 
       item.appendChild(btn);
-      console.log("JQC: Button injected for PR #" + prNum);
     });
   }
 
@@ -407,7 +400,6 @@
       }
     });
 
-    console.log("JQC: Found " + cards.length + " issue cards on board");
     return cards;
   }
 
@@ -508,11 +500,9 @@
       if (priorityContainer) {
         // Insert button right after priority icon
         priorityContainer.parentElement.insertBefore(btn, priorityContainer.nextSibling);
-        console.log("JQC: Button placed next to priority icon for " + issueKey);
       } else {
         // Fallback: insert at the beginning of the card
         card.insertBefore(btn, card.firstChild);
-        console.log("JQC: Button placed at start of card for " + issueKey);
       }
     });
   }
