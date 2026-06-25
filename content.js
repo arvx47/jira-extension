@@ -444,16 +444,13 @@
 
       // Extract title BEFORE adding button to card
       let title = issueKey;
-      const contentSection = card.querySelector('[data-component-selector="platform-card.ui.card.card-content.content-section"]');
-      if (contentSection) {
-        const titleEl = contentSection.querySelector('[data-testid*="single-line-text"]') ||
-                       contentSection.querySelector('span');
-        if (titleEl) {
-          const titleText = titleEl.textContent.trim();
-          if (titleText && titleText !== issueKey && titleText.length > issueKey.length) {
-            title = titleText;
-          }
-        }
+      const lines = card.textContent.split('\n').map(l => l.trim()).filter(l => l && l !== issueKey && !l.includes('Copy'));
+
+      // Find longest line that looks like a title
+      if (lines.length > 0) {
+        title = lines.reduce((longest, current) =>
+          current.length > longest.length ? current : longest
+        );
       }
 
       const btn = makeButton(btnId, "Copy", "Copy issue key + title");
