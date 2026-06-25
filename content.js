@@ -375,38 +375,39 @@
   }
 
   function getIssuesFromBoard() {
-    // Get all issue key links on the board
-    const issueLinks = document.querySelectorAll('a[href*="/browse/"]');
+    // Get all title spans first
+    const titleSpans = document.querySelectorAll('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
     const seenKeys = new Set();
     const issuesData = [];
 
-    issueLinks.forEach((link) => {
-      const match = link.href.match(/\/browse\/([A-Z]+-\d+)/);
-      if (match) {
-        const key = match[1];
-        if (!seenKeys.has(key)) {
-          seenKeys.add(key);
+    titleSpans.forEach((titleSpan) => {
+      const title = titleSpan.textContent.trim();
 
-          // Find the card container first (the large visible container)
-          let cardContainer = link;
-          for (let i = 0; i < 50 && cardContainer; i++) {
-            // Look for the card container by checking for the content area
-            if (cardContainer.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]')) {
-              break;
-            }
-            cardContainer = cardContainer.parentElement;
+      // Find the issue key link in the same card
+      let cardContainer = titleSpan;
+      let link = null;
+
+      // Search up to 50 levels to find a link to /browse/
+      for (let i = 0; i < 50 && cardContainer; i++) {
+        link = cardContainer.querySelector('a[href*="/browse/"]');
+        if (link) break;
+        cardContainer = cardContainer.parentElement;
+      }
+
+      if (link) {
+        const match = link.href.match(/\/browse\/([A-Z]+-\d+)/);
+        if (match) {
+          const key = match[1];
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            console.log("JQC: Found issue - key:", key, "title:", title);
+
+            issuesData.push({
+              key: key,
+              title: title,
+              link: link
+            });
           }
-
-          // Now find the title span within the card
-          let titleSpan = cardContainer?.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]');
-          const title = titleSpan ? titleSpan.textContent.trim() : key;
-          console.log("JQC: Found issue - key:", key, "title:", title, "titleSpan:", titleSpan);
-
-          issuesData.push({
-            key: key,
-            title: title,
-            link: link
-          });
         }
       }
     });
