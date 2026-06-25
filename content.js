@@ -450,43 +450,24 @@
         e.preventDefault();
 
         const key = getIssueKeyFromCard(card);
-        console.log("JQC: Button clicked for key:", key);
         if (!key) { flashButton(btn, false); return; }
 
-        // Get title from card - look for the text content element
+        // Get title from card - look in the content section, not including the button
         let title = key;
 
-        // Try to find the title in the specific selector
-        const titleEl = card.querySelector('[data-testid="issue-field-single-line-text-readview-card.ui.single-line-text.container.box"]') ||
-                       card.querySelector('[data-testid*="single-line-text"]') ||
-                       card.querySelector('[data-component-selector*="content-section"] span');
-
-        console.log("JQC: titleEl found:", titleEl);
-        if (titleEl) {
-          const titleText = titleEl.textContent.trim();
-          console.log("JQC: titleEl text:", titleText);
-          if (titleText && titleText !== key && titleText.length > key.length) {
-            title = titleText;
-            console.log("JQC: Set title from selector:", title);
-          }
-        }
-
-        // Fallback: extract from text content
-        if (title === key) {
-          console.log("JQC: Fallback - extracting from card text");
-          const textContent = card.textContent;
-          const lines = textContent.split('\n').map(l => l.trim()).filter(l => l);
-          console.log("JQC: Card text lines:", lines);
-          for (const line of lines) {
-            if (line.length > key.length + 5 && !line.match(/^\d+$/) && line !== key) {
-              title = line;
-              console.log("JQC: Found title from text:", title);
-              break;
+        // Look for the content section specifically
+        const contentSection = card.querySelector('[data-component-selector="platform-card.ui.card.card-content.content-section"]');
+        if (contentSection) {
+          const titleEl = contentSection.querySelector('[data-testid*="single-line-text"]') ||
+                         contentSection.querySelector('span');
+          if (titleEl) {
+            const titleText = titleEl.textContent.trim();
+            if (titleText && titleText !== key && titleText.length > key.length) {
+              title = titleText;
             }
           }
         }
 
-        console.log("JQC: Final title:", title);
         const issueUrl = `${location.origin}/browse/${key}`;
         const plain = `${key} ${title}`;
         const html = `<a href="${issueUrl}">${key}</a> ${title}`;
