@@ -442,6 +442,7 @@
   }
 
   function injectBoardButtons() {
+    return; // Board button injection disabled
     if (!isBoardView()) return;
 
     const issuesData = getIssuesFromBoard();
