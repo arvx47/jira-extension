@@ -192,7 +192,7 @@
           const linkedKey = jiraUrl
             ? `<a href="${jiraUrl}">${jiraKey}</a>`
             : jiraKey;
-          const html = `:salesforce: ${sizeIcon} [${linkedKey}] ${stripBracketedKey(fullTitle)} ${prUrl}`;
+          const html = `:salesforce: ${sizeIcon} [${linkedKey}] ${stripBracketedKey(fullTitle)} <a href="${prUrl}">${prUrl}</a>`;
 
           copyRichText(html, plain);
           flashButton(btn, true);
@@ -503,6 +503,9 @@
 
   function inject() {
     if (isJira()) {
+      chrome.storage.sync.get("jiraBase", ({ jiraBase }) => {
+        if (!jiraBase) chrome.storage.sync.set({ jiraBase: location.hostname });
+      });
       injectJiraButton();
       injectBoardButtons();
     }
